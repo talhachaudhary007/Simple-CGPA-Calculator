@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CGPA Calculator</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <style>
+        .subject-fields {
+            margin-bottom: 20px;
+        }
+        .card {
+            border: 1px solid #17a2b8;
+        }
+        .card-title {
+            color: #17a2b8;
+        }
+        .btn-primary, .btn-secondary {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+        .form-control {
+            margin-bottom: 10px;
+        }
+        .calculator-header {
+            background-color: #17a2b8;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5" style="max-width: 1000px;">
+        <div class="calculator-header text-center mb-4">
+            <h2>CGPA Calculator</h2>
+        </div>
+        <form id="cgpaForm">
+            <div id="semester-container">
+                <div class="semester card mb-3" id="semester-1">
+                    <div class="card-body">
+                        <h4 class="card-title">Semester 1 
+                            <button type="button" class="btn btn-danger btn-sm float-right btn-delete-semester" data-semester="1">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </h4>
+                        <div class="subject-fields" id="subject-fields-semester-1">
+                            <div class="form-row mb-2 subject-row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" name="semesters[1][subjects][1][name]" placeholder="Subject Name" id="S1Subject1Name">
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control grade-input" name="semesters[1][subjects][1][grade]" placeholder="Grade Points" id="S1Subject1Grade">
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control" name="semesters[1][subjects][1][credits]" placeholder="Credit Hours" id="S1Subject1Credits">
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-danger btn-delete-subject">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-add-subject" data-semester="1">Add Subject</button>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary mt-4" id="add-semester">Add Semester</button>
+            <button type="submit" class="btn btn-success mt-4">Submit</button>
+        </form>
+
+        <div id="results" class="mt-5"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            let semesterCount = 1;
+            let subjectCounts = {1: 1}; // Initialize subject count for the first semester
+
+            // Function to add a new subject field
+            function addSubjectField(semesterId) {
+                if (!subjectCounts[semesterId]) {
+                    subjectCounts[semesterId] = 1;
+                }
+                subjectCounts[semesterId]++;
+                let subjectId = subjectCounts[semesterId];
+
+                let subjectFieldHTML = `
+                    <div class="form-row mb-2 subject-row">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" name="semesters[${semesterId}][subjects][${subjectId}][name]" placeholder="Subject Name" id="S${semesterId}Subject${subjectId}Name">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control grade-input" name="semesters[${semesterId}][subjects][${subjectId}][grade]" placeholder="Grade Points" id="S${semesterId}Subject${subjectId}Grade">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="number" class="form-control" name="semesters[${semesterId}][subjects][${subjectId}][credits]" placeholder="Credit Hours" id="S${semesterId}Subject${subjectId}Credits">
+                        </div>
+                        <div class="col-md-1">
+                            <button type="button" class="btn btn-danger btn-delete-subject">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                $(`#subject-fields-semester-${semesterId}`).append(subjectFieldHTML);
+            }
+
+            // Add subject button click event
+            $(document).on('click', '.btn-add-subject', function() {
+                let semesterId = $(this).data('semester');
+                addSubjectField(semesterId);
+            });
+
+            // Delete subject button click event
+            $(document).on('click', '.btn-delete-subject', function() {
+                $(this).closest('.subject-row').remove();
+            });
+
+            // Add semester button click event
+            $('#add-semester').click(function() {
+                semesterCount++;
+                subjectCounts[semesterCount] = 1; // Initialize subject count for the new semester
+
+                let semesterHTML = `
+                    <div class="semester card mb-3" id="semester-${semesterCount}">
+                        <div class="card-body">
+                            <h4 class="card-title">Semester ${semesterCount} 
+                                <button type="button" class="btn btn-danger btn-sm float-right btn-delete-semester" data-semester="${semesterCount}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </h4>
+                            <div class="subject-fields" id="subject-fields-semester-${semesterCount}">
+                                <div class="form-row mb-2 subject-row">
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" name="semesters[${semesterCount}][subjects][1][name]" placeholder="Subject Name" id="S${semesterCount}Subject1Name">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control grade-input" name="semesters[${semesterCount}][subjects][1][grade]" placeholder="Grade Points" id="S${semesterCount}Subject1Grade">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="number" class="form-control" name="semesters[${semesterCount}][subjects][1][credits]" placeholder="Credit Hours" id="S${semesterCount}Subject1Credits">
+                                    </div>
+                                    <div class="col-md-1">
+                                        <button type="button" class="btn btn-danger btn-delete-subject">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary btn-add-subject" data-semester="${semesterCount}">Add Subject</button>
+                        </div>
+                    </div>
+                `;
+                $('#semester-container').append(semesterHTML);
+            });
+
+            // Delete semester button click event
+            $(document).on('click', '.btn-delete-semester', function() {
+                let semesterId = $(this).data('semester');
+                $(`#semester-${semesterId}`).remove();
+            });
+
+            // Handle form submission
+            $('#cgpaForm').submit(function(event) {
+                event.preventDefault();
+                $.ajax({
+                    type: 'POST',
+                    url: 'calculate.php',
+                    data: $(this).serialize(),
+                    dataType: 'json',
+                    success: function(response) {
+                        let resultsHTML = '<h3>GPA for Each Semester</h3>';
+                        $.each(response.gpas, function(semester, gpa) {
+                            resultsHTML += `Semester ${semester}: ${gpa.toFixed(2)}<br>`;
+                        });
+                        resultsHTML += `<h3>Overall CGPA</h3>`;
+                        resultsHTML += `CGPA: ${response.cgpa.toFixed(2)}<br>`;
+
+                        $('#results').html(resultsHTML);
+                    },
+                    error: function() {
+                        $('#results').html('<div class="alert alert-danger">There was an error processing your request.</div>');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
